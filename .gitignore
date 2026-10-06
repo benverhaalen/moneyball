@@ -1,0 +1,12 @@
+.moneyball/
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.env*
+*storage-state*.json
+*cookies*.json
+
+.DS_Store
+build/
+dist/

@@ -1,0 +1,50 @@
+name: Tests and distribution
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install development dependencies
+        run: python -m pip install -e '.[agent,analytics,dev]'
+      - name: Legacy mechanics and research tests
+        run: python -m unittest discover -s tests -v
+      - name: Connected agent and MCP tests
+        run: python -m unittest discover -s tests/art_of_the_deal -v
+      - name: Build wheel and source distribution
+        run: python -m build
+      - name: Install wheel and exercise it outside the checkout
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/moneyball-installed"
+          "$RUNNER_TEMP/moneyball-installed/bin/python" -m pip install dist/*.whl 'mcp>=1.26,<2'
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/moneyball-installed/bin/moneyball-agent" --help
+          "$RUNNER_TEMP/moneyball-installed/bin/moneyball-agent" demo
+          "$RUNNER_TEMP/moneyball-installed/bin/python" - <<'PY'
+          from art_of_the_deal.league_research import skill_text
+          from art_of_the_deal.server import strategy_skill, research_method, trade_method
+          from importlib.metadata import distribution
+          import moneyball
+          assert skill_text() == strategy_skill()
+          assert research_method() and trade_method()
+          assert all(x in {ep.name for ep in distribution('moneyball-fantasy').entry_points}
+                     for x in ('moneyball', 'moneyball-agent', 'moneyball-mcp'))
+          print('Installed entry points and packaged strategy resources verified')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: matrix.python == '3.13'
+        with:
+          name: distributions
+          path: dist/*

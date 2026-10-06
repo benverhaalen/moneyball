@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "moneyball-fantasy"
+version = "0.1.0"
+description = "League-aware fantasy strategy, evidence and agent tools for Sleeper and ESPN"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+requires-python = ">=3.11"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Games/Entertainment",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/benverhaalen/moneyball"
+Issues = "https://github.com/benverhaalen/moneyball/issues"
+
+[project.optional-dependencies]
+agent = ["mcp>=1.26,<2"]
+analytics = ["numpy>=1.26", "scipy>=1.11"]
+dev = ["build>=1.2"]
+
+[project.scripts]
+moneyball = "moneyball.cli:main"
+moneyball-agent = "art_of_the_deal.cli:main"
+moneyball-mcp = "art_of_the_deal.server:main"
+art-of-the-deal = "art_of_the_deal.cli:main"
+art-of-the-deal-mcp = "art_of_the_deal.server:main"
+
+[tool.setuptools.packages.find]
+include = ["moneyball*", "art_of_the_deal*"]
+
+[tool.setuptools.package-data]
+art_of_the_deal = ["skills/moneyball-strategy/*.md", "skills/moneyball-strategy/references/*.md", "data/*.json"]
