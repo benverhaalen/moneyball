@@ -1,4 +1,4 @@
-"""Public nflverse adapters and cache-aware HTTP retrieval (standard library).
+"""Public CSV adapters and cache-aware HTTP retrieval (standard library).
 
 Endpoint templates were read in nflverse/nflreadr's R loader sources on
 2026-09-07. Mutable annual files are final-data observations, not historical
@@ -164,12 +164,38 @@ DATASETS = {
         key=('season','player_name','pos','school'), required=('season','player_name'),
         history='2000 onward per loader', cadence='annual and corrected',
         origin='Pro Football Reference through nflverse', yearly=False),
+    'fantasy_ids': dict(source_id='dynastyprocess_ids',
+        url='https://raw.githubusercontent.com/dynastyprocess/data/master/files/db_playerids.csv',
+        loader='load_ffverse.R', key=('source_row_number',),
+        required=('source_row_number','mfl_id'), history='current global mutable crosswalk; MFL is upstream primary key',
+        cadence='weekly updates and identifier corrections', origin='DynastyProcess/data recorded player identifier crosswalk',
+        yearly=False),
 }
 
 
 def registry(warehouse):
     result = []
     for name, spec in DATASETS.items():
+        if name == 'fantasy_ids':
+            result.append(warehouse.register_source(spec['source_id'], {
+                'dataset': name, 'origin': spec['origin'], 'url_template': spec['url'],
+                'access': 'free public HTTP CSV; no authentication', 'cadence': spec['cadence'], 'history': spec['history'],
+                'license_status': 'DynastyProcess/data LICENSE declares GNU General Public License version 3; loader license does not replace data license',
+                'license_evidence_url': 'https://raw.githubusercontent.com/dynastyprocess/data/master/LICENSE',
+                'terms_urls': ['https://github.com/dynastyprocess/data'],
+                'quality': ['recorded crosswalk assertions are not provider identity proof',
+                            'duplicate and contradictory ID assertions retained as separate source rows',
+                            'mutable age and team excluded from normalized identity records',
+                            'historical publication vintage unknown'],
+                'verification_status': 'CSV and loader source inspected 2026-10-13; producer matching implementation is private',
+                'verification_url': LOADER+spec['loader'],
+                'producer_url': 'https://github.com/dynastyprocess/data',
+                'producer_workflow_url': 'https://github.com/dynastyprocess/data/blob/master/.github/workflows/weekly-playerids.yml',
+                'historical_pit_status': 'not verified; availability starts with local observation',
+                'transform_version': 'dynastyprocess-identity-csv-v1',
+                'upstream_primary_key': 'mfl_id', 'record_key_policy': 'CSV row number preserves every source assertion',
+                'fantasy_fields_policy': 'identity fields only; raw source retained separately'}))
+            continue
         result.append(warehouse.register_source('nflverse_'+name, {
             'dataset': name, 'origin': spec['origin'], 'url_template': spec['url'],
             'access': 'free public HTTP CSV; no authentication', 'cadence': spec['cadence'], 'history': spec['history'],
@@ -217,6 +243,8 @@ def _value(key, value):
 
 
 def normalize(dataset, rows):
+    if dataset == 'fantasy_ids':
+        return _normalize_fantasy_ids(rows)
     result = []
     for original in rows:
         row = {k: _value(k,v) for k,v in original.items()}
@@ -253,6 +281,40 @@ def normalize(dataset, rows):
     return result
 
 
+def _normalize_fantasy_ids(rows):
+    """Retain row assertions, including repeats; never select a winning mapping.
+
+    Row numbers refer to CSV records (the header is record one), so a raw receipt and
+    row reference reproduce the full source assertion without making mutable
+    team/age fields available as normalized historical player features.
+    """
+    required_header = {'mfl_id', 'sleeper_id', 'espn_id', 'gsis_id'}
+    result = []
+    for index, original in enumerate(rows, start=2):
+        if not required_header.issubset(original):
+            raise ValidationError('Fantasy ID CSV missing identity schema columns')
+        row = {k: _value(k, v) for k, v in original.items() if k.endswith('_id')}
+        # Dated identity descriptors are assertions too. Retain them to expose
+        # duplicate-row contradictions; mutable age/team are not player features.
+        row['name'] = _value('name', original.get('name'))
+        row['birth_date'] = _value('birthdate', original.get('birthdate'))
+        for field in ('mfl_id', 'sleeper_id', 'espn_id'):
+            value = row.get(field)
+            if field == 'mfl_id' and value is None:
+                raise ValidationError(f'Fantasy ID CSV row {index}: missing mfl_id')
+            if value is not None and (not isinstance(value, str) or not re.fullmatch(r'[0-9]+', value)):
+                raise ValidationError(f'Fantasy ID CSV row {index}: malformed {field}')
+        gsis = row.get('gsis_id')
+        # The inspected source includes legacy GSIS-form labels as well as modern
+        # IDs. Preserve both without claiming either is a verified provider binding.
+        if gsis is not None and (not isinstance(gsis, str) or not re.fullmatch(r'(?:[0-9]{2}-[0-9]{7}|[A-Z]{3}[0-9]{6})', gsis)):
+            raise ValidationError(f'Fantasy ID CSV row {index}: malformed gsis_id')
+        row.update(source_row_number=index, identity_verified=False,
+                   identity_status='recorded_crosswalk_not_identity_proof')
+        result.append(row)
+    return result
+
+
 def ingest(warehouse=None, *, datasets=('weekly','schedules','rosters','players','snap_counts','draft_picks','combine'),
            seasons=(2024,2025), force=False, offline=False, fetcher=None, ttl=86400):
     warehouse = warehouse or Warehouse()
@@ -265,7 +327,7 @@ def ingest(warehouse=None, *, datasets=('weekly','schedules','rosters','players'
             raise ValueError('Unknown dataset: ' + dataset)
         spec = DATASETS[dataset]
         for year in requested if spec['yearly'] else (None,):
-            source_id = 'nflverse_' + dataset
+            source_id = spec.get('source_id', 'nflverse_' + dataset)
             url = spec['url'].format(season=year)
             partition = str(year) if year else 'all'
             raw = None
@@ -274,7 +336,7 @@ def ingest(warehouse=None, *, datasets=('weekly','schedules','rosters','players'
                 rows = normalize(dataset, decode_csv(warehouse.raw_bytes(raw['id']), raw['http_meta']))
                 # Global files are kept in full for idempotence and future cohort work.
                 # Season filters are a model/read concern, not mutation of a global snapshot.
-                ranges = {'season': (1920, 2200)} if dataset != 'players' else {}
+                ranges = {'season': (1920, 2200)} if dataset not in ('players','fantasy_ids') else {}
                 if dataset in ('weekly','schedules','snap_counts'):
                     ranges['week'] = (1, 30)
                 batch = warehouse.publish(source_id, dataset, rows, raw_id=raw['id'], key_fields=spec['key'],

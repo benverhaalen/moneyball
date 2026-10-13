@@ -33,6 +33,13 @@ class MCPJourney(unittest.IsolatedAsyncioTestCase):
                         await client.initialize()
                         names={t.name for t in (await client.list_tools()).tools}
                         self.assertIn("trade_packet",names)
+                        self.assertTrue({"firecrawl_status", "discover_firecrawl_tools", "sync_firecrawl_feed", "query_firecrawl_feeds", "qualify_firecrawl_feed"} <= names)
+                        feed_status = await client.call_tool("firecrawl_status", {})
+                        self.assertFalse(feed_status.isError)
+                        self.assertFalse(json.loads(feed_status.content[0].text)["authentication_tested"])
+                        feeds = await client.call_tool("query_firecrawl_feeds", {"alias":"demo"})
+                        self.assertFalse(feeds.isError)
+                        self.assertEqual(json.loads(feeds.content[0].text)["feeds"], [])
                         self.assertIn("acquisition_context",names)
                         self.assertIn("pickup_packet",names)
                         self.assertIn("league_research_plan",names)
@@ -68,10 +75,14 @@ class MCPJourney(unittest.IsolatedAsyncioTestCase):
                         self.assertFalse(pickup.isError)
                         pickup_data=json.loads(pickup.content[0].text)
                         self.assertEqual(pickup_data["comparison"]["comparisons"][0]["delta_points"],7)
+                        self.assertEqual(pickup_data["decision_support"]["retention_review"]["drop_player_id"], "ar")
+                        self.assertEqual(pickup_data["decision_support"]["retention_review"]["status"], "required_before_drop_recommendation")
                         claims=await client.call_tool("claim_scenarios",{"alias":"demo","claims":[{"player_id":"fa3","drop_player_id":"ar","priority_before":2}],"fresh":False})
                         self.assertFalse(claims.isError)
                         claim_data=json.loads(claims.content[0].text)
                         self.assertIsNone(claim_data["comparison"]["claim_probabilities"])
+                        branch = claim_data["comparison"]["scenarios"][0]["conditional_on_this_target_being_acquired"]
+                        self.assertEqual(branch["decision_support"], pickup_data["decision_support"])
                         self.assertEqual(s.store.get("league","demo")["sha256"],before)
 
 if __name__=="__main__": unittest.main()

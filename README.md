@@ -1,87 +1,114 @@
 # Moneyball
 
-League-aware fantasy football strategy for your coding agent. Connect your Sleeper or ESPN leagues, keep their rules and rosters in a local evidence store, and ask for draft, lineup, waiver and trade advice grounded in the league you actually play.
+Fantasy football evidence and roster comparisons for your AI assistant. Connect a Sleeper or ESPN league, then ask about trades, waivers, lineups, drafts, or a dynasty rebuild.
 
-Moneyball brings its data pipelines and draft research together with **Art of the Deal's trade and waiver evaluation** in one public project. Your agent does the research and reasoning; the package retrieves evidence, preserves provenance, checks rule bindings and compares legal roster alternatives.
+Moneyball supplies dated league data, reusable strategy research, player evidence, and rule-specific calculations. Your assistant researches uncertain claims and explains the recommendation. You make the moves on the fantasy platform.
 
-> “It's Tuesday night. Should I add anyone? Compare the best available additions with holding my roster, include the required drop, and explain which assumption would change your answer.”
+> "Find trades that improve my roster. Include the required drops, show why the other team might accept, and compare each offer with keeping my players."
 
-## Install and try it
+Redraft, keeper, and dynasty decisions use your league's scoring, roster slots, retention rules, and playoff format. Missing forecasts or unclear rules stay visible. Moneyball does not claim calibrated championship odds.
 
-Python 3.11 or later:
+## Install and try a decision
 
-Check `python3 --version` first. If that command selects an older system Python, use your installed Python 3.11 or later executable to create the virtual environment.
+Use Python 3.11 or later. Check `python3 --version` before creating the environment.
 
 ```sh
 git clone https://github.com/benverhaalen/moneyball.git
 cd moneyball
 python3 -m venv .venv
-# Windows: .venv\Scripts\activate
 source .venv/bin/activate
 python -m pip install -e '.[agent]'
-moneyball-agent demo
-moneyball-agent --help
+moneyball decision demo
 ```
 
-The demo uses synthetic data, an isolated temporary store and no account or network. Add `analytics` to the extra list when using the experimental NumPy/SciPy lab: `'.[agent,analytics]'`. Some advanced data imports require R; the dataset catalog explains which ones.
+On Windows, activate the environment with `.venv\Scripts\activate`.
 
-## Use it in your agent
+The demo runs synthetic decision examples in a temporary store. It needs no account or network. You can inspect alternatives, missing evidence, and saved decision context before connecting a league.
 
-Add the local stdio server to your coding agent's MCP configuration. Replace the executable and data paths with absolute paths on your machine; on Windows use `.venv\\Scripts\\moneyball-mcp.exe`. Your client's configuration location varies.
+## Connect your assistant
+
+Add the local stdio server to an MCP client such as Codex or Claude Code. Replace the executable and data paths with absolute paths on your machine.
 
 ```json
 {
-  "mcpServers": {
-    "moneyball": {
-      "command": "/absolute/path/to/moneyball/.venv/bin/moneyball-mcp",
-      "env": {"ART_OF_DEAL_HOME": "/absolute/path/to/private/moneyball-data"}
-    }
-  }
+	"mcpServers": {
+		"moneyball": {
+			"command": "/absolute/path/to/moneyball/.venv/bin/moneyball-mcp",
+			"env": {
+				"MONEYBALL_HOME": "/absolute/path/to/private/moneyball-data"
+			}
+		}
+	}
 }
 ```
 
-Then ask your agent:
+On Windows, use the executable at `.venv\Scripts\moneyball-mcp.exe`. Configuration locations depend on the client. A local stdio server does not provide a hosted ChatGPT connection.
 
-> “Connect my Sleeper account by username, show my leagues for this season, and connect the ones I choose. Identify my team in each league. Complete Moneyball's strategy research for their exact rules, and tell me which evidence is still missing.”
+Then ask your assistant:
 
-Sleeper's public read API needs a username, **no password or API token**. Discovery identifies leagues; you choose which to connect. ESPN connections use a league ID or supported league URL, season and team selection. Public leagues need no credentials; private leagues need your ESPN session configured outside chat and the repository. There is no ESPN OAuth flow or automatic account-wide league discovery. See [account setup and the decision workflow](docs/agent-strategy.md).
+> "Find my Sleeper leagues for this season using my username. Show me the leagues before connecting them, identify my team, and research strategy for their exact rules. Tell me which inputs are missing."
 
-The server includes the strategy skill in its instructions and exposes these resources:
+Choose the connection method that fits your league:
 
-- `moneyball://skills/strategy` — the complete host workflow.
-- `moneyball://research/method` — cross-domain strategy discovery and evaluation.
-- `moneyball://research/trades` — Art of the Deal's trade method.
+| League | Required information |
+| --- | --- |
+| Sleeper | Your username for discovery, followed by your selected leagues and teams. Public read access needs no password or token. |
+| Public ESPN | A supported league URL or league ID, the season, and your team. |
+| Private ESPN | The same league information, plus a locally configured ESPN session. Keep credentials outside chat and Git. |
 
-A connection saves a rule-bound research request. Your agent investigates and saves the research; connection itself does not run a model. Agents without MCP can use `moneyball-agent skill` and the JSON CLI. `moneyball agent ...` is an alias for the same CLI.
+ESPN account-wide discovery and OAuth are not implemented. Follow [the connection and strategy guide](docs/agent-strategy.md) for setup details. Without MCP, run `moneyball skill` for the host instructions and use `moneyball --help` for the JSON CLI.
 
-## What you can do
+## Ask about your league
 
-| Journey | Evidence and mechanics | Boundaries |
-| --- | --- | --- |
-| Connect leagues | Sleeper discovery; explicit Sleeper/ESPN connections and own-team selection | No account-wide ESPN discovery; credentials stay local |
-| Draft live | Connected Sleeper draft board, picks, ownership and change/freshness checks | ESPN draft history, without a live clock guarantee; no pick submission |
-| Set a lineup | Rule-compatible assignments from dated, matching-period forecasts | Conditional on supplied forecasts; check player locks and late news |
-| Work waivers | Available-player evidence, add/drop and ordered claim alternatives, holding baseline | Provider eligibility and clearing-time gaps remain explicit; no claim submission |
-| Curate trades | Complete legal roster substitutions, bilateral effects, drops, pick evidence and outside options | Agent explains who benefits, each side's tradeoffs and why a balanced proposal is worth considering; no calibrated title odds |
-| Research strategy | Reusable policies for draft, lineup, waiver and trade bound to rules/team/season | Report validation checks structure and binding, not predictive edge |
-| Inspect data | Dataset catalog, bounded ingestion/query, provenance and historical-availability filters | Dataset-specific coverage/rights; raw history is not a forecast |
+Once connected, ask an ordinary question:
 
-A useful answer identifies the league and decision deadline, refreshes relevant evidence, compares feasible alternatives, explains the decisive assumptions and shows what would reverse the recommendation. Missing projections or unclear rules remain visible instead of becoming zeroes.
+- "Compare this trade with holding. Recompute both lineups and include any cuts."
+- "Find this week's waiver moves. Give me ordered claims, drops, and fallbacks."
+- "Compare my lineup options using matching-week forecasts and current availability evidence."
+- "At this draft pick, compare available players across positions. Show the current-year and future tradeoffs."
+- "Help me rebuild. Separate evidence of player ability from evidence of future opportunity."
 
-## Research rather than slogans
+The assistant follows `prepare_decision → decision_evidence → compare_actions → record_decision → resume_decision`. Moneyball refreshes relevant resources, exposes dated evidence, and checks roster mechanics. Saved decisions retain the consulted inputs, counterarguments, and conditions that would change the answer.
 
-Moneyball's research method maps league decisions to underlying problems such as scarce-slot allocation, substitutability, uncertain future service, auction incentives and the value of waiting. It looks for mechanisms in other domains, checks their assumptions against observed league rules, and retains counterexamples and rejected transfers. Art of the Deal evaluates the whole post-trade roster for both managers, including capacity costs and feasible alternatives.
+The research workflow imports methods from structurally similar problems outside fantasy. It checks their assumptions against your rules and saves the findings for reuse. Connecting a league creates a research request; it does not automatically run a model or validate a strategy.
 
-Read [the research method and reference decisions](docs/research.md), [the portable strategy workflow](docs/agent-strategy.md), and [architecture and reliability](docs/architecture.md). These methods are research hypotheses and conditional decision tools, not a claim of demonstrated competitive advantage.
+## Understand the limits
 
-## Data and advanced tools
+| Capability | Current boundary |
+| --- | --- |
+| League context | Sleeper and ESPN are supported. Other platforms require an adapter. |
+| Trade and waiver comparisons | Complete roster changes and cuts are checked. Forecast coverage and platform eligibility can remain incomplete. |
+| Live draft support | Sleeper board checks and saved decision branches are implemented. Sub-minute assistant performance is unproven. ESPN draft history has no live-clock guarantee. |
+| News discovery | Player-specific leads have dated identity checks. A headline or link is not verified reporting. |
+| Future scenarios | Supplied assumptions can change role and competition calculations. Development, injury risk, and title probabilities are not automatically calibrated. |
+| Historical analysis | Queries preserve local knowability. An old season label does not prove that today's revised data existed then. |
 
-The local service stores private league evidence on your machine. The older `moneyball` CLI also provides a Sleeper snapshot substrate and experimental `lab` tooling. These stores remain separate unless explicitly configured; there is no automatic migration of existing caches. [Data pipelines](docs/data-pipelines.md) explains access, provenance and reuse.
+Moneyball does not submit trades, waiver claims, lineup changes, draft picks, or messages. Treat conditional calculations as support for a decision, not as established forecast accuracy.
 
-The NFL has released **selected tracking datasets** for the Big Data Bowl. That is different from opening all Next Gen Stats tracking data. Public nflverse datasets include play-by-play and other observations with source-specific coverage and licenses. See [data sources and limits](docs/data-pipelines.md).
+## Extend the evidence and methods
 
-Advanced guides: [analytics](docs/analytics.md), [draft copilot](docs/draft-copilot.md), [draft context](docs/draft-context.md), [fast local comparisons](docs/draft-fastlane.md), [player dossiers](docs/draft-dossiers.md), [dynasty evaluation](docs/dynasty-evaluation.md), and [mock experiments](docs/mock-lab.md). The research lab's fixed-format draft experiments are distinct from connected league context; experimental simulation percentages are conditional model outputs.
+Connected league tools share one private evidence root, configured by `MONEYBALL_HOME`. Observed-data partitions live under its `lab/` directory. Older stores are preserved rather than silently merged.
+
+Read the guide for the work you want to do:
+
+| Task | Guide |
+| --- | --- |
+| Configure leagues and reuse strategy | [Agent strategy](docs/agent-strategy.md) |
+| Add or inspect data sources, dates, and licensing | [Data pipelines](docs/data-pipelines.md) |
+| Build player assessments and conditional future scenarios | [Player assessment](docs/player-assessment.md) |
+| Investigate cross-domain strategy methods | [Research](docs/research.md) |
+| Understand the service and its remaining milestones | [Architecture](docs/architecture.md), [architecture plan](docs/architecture-plan.md), and [reference decisions](docs/architecture-references.md) |
+| Add optional forecast or news inputs | [Forecast challengers](docs/forecast-challengers.md) and [Firecrawl setup](docs/firecrawl-feed.md) |
+| Use experimental models | [Analytics](docs/analytics.md) |
+| Prepare draft evidence and practice | [Draft copilot](docs/draft-copilot.md), [dossiers](docs/draft-dossiers.md), and [mock experiments](docs/mock-lab.md) |
+| Move an older installation | [Migration](docs/migration.md) |
+
+Add the `analytics` extra when using the NumPy/SciPy lab: `python -m pip install -e '.[agent,analytics]'`. Some data imports require R. Check the dataset catalog before ingesting them. Existing league access works without a Firecrawl key.
+
+The canonical connected service lives in `moneyball/league/`. Existing `art_of_the_deal` imports and commands remain compatibility aliases.
 
 ## Contribute
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for tests, packaging and synthetic fixtures, and [SECURITY.md](SECURITY.md) for safe reporting. Code is MIT licensed; upstream data and service access have separate terms, attribution and licensing. See [third-party notices](THIRD_PARTY_NOTICES.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for both test suites, packaging checks, and synthetic fixtures. See [SECURITY.md](SECURITY.md) for reporting security issues.
+
+Code is MIT licensed. Upstream datasets and services have separate terms. Preserve their attribution and consult [third-party notices](THIRD_PARTY_NOTICES.md) before reuse. Keep league snapshots, browser state, credentials, player dossiers, and experiment transcripts out of commits.

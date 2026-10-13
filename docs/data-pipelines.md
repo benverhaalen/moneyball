@@ -35,3 +35,17 @@ NGS public summaries, participation data and FTN charting are distinct from comp
 | Public tracking summaries | Source-specific advanced observations | All underlying NFL tracking data is open |
 
 The source registry preserves horizon, access status, licensing and refresh caveats. Some legacy providers are cached-only or permission-dependent. No paid subscription is required for the offline demo, and a subscription alone does not establish bulk or redistribution rights. Source failures and missing future projections should appear in the final advice.
+
+[Forecast challengers](forecast-challengers.md) reviews Firecrawl Alexandria as an optional gateway, maps its providers to existing Moneyball inputs, and specifies qualification and prospective evaluation. The optional adapter is installed in the package and tested with synthetic responses; live authentication/execution remains unverified. See [feed setup](firecrawl-feed.md) and [October tooling comparison](data-tooling-october-2026.md).
+
+
+## Optional identity assertions
+
+```sh
+moneyball-agent pipeline-sync fantasy_ids --seasons 2026
+moneyball-agent pipeline-query fantasy_ids --seasons 2026 --source dynastyprocess_ids --limit 8
+```
+
+`fantasy_ids` is a global snapshot, not a season-specific forecast; the CLI retains its explicit season parameter. It is opt-in and excluded from default bulk ingestion. The DynastyProcess source registry records GPL-3.0 separately from nflverse data licensing and notes that its current private builder could not be inspected. Retained duplicate rows, names, birthdates and IDs support conflict detection, not a declaration of identity truth. Current observations never acquire an earlier historical knowability date from a season label.
+
+Focused live news discovery qualifies the selected ESPN target against dated native/source assertions. Contradictions quarantine enrichment; metadata agreement remains a weak assertion. Historical discovery uses retained qualifications without current requests. Source or qualification changes invalidate dependent decision receipts; cached checks do not renew news publication dates. No bulk source acquisition happens automatically during a pick or ordinary focused discovery.

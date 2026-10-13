@@ -30,13 +30,13 @@ dev = ["build>=1.2"]
 
 [project.scripts]
 moneyball = "moneyball.cli:main"
-moneyball-agent = "art_of_the_deal.cli:main"
-moneyball-mcp = "art_of_the_deal.server:main"
-art-of-the-deal = "art_of_the_deal.cli:main"
-art-of-the-deal-mcp = "art_of_the_deal.server:main"
+moneyball-agent = "moneyball.league.cli:main"
+moneyball-mcp = "moneyball.league.server:main"
+art-of-the-deal = "moneyball.league.cli:main"
+art-of-the-deal-mcp = "moneyball.league.server:main"
 
 [tool.setuptools.packages.find]
 include = ["moneyball*", "art_of_the_deal*"]
 
 [tool.setuptools.package-data]
-art_of_the_deal = ["skills/moneyball-strategy/*.md", "skills/moneyball-strategy/references/*.md", "data/*.json"]
+"moneyball.league" = ["skills/moneyball-strategy/*.md", "skills/moneyball-strategy/references/*.md", "data/*.json"]

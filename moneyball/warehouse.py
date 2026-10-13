@@ -328,7 +328,9 @@ class Warehouse:
             rows = db.execute('SELECT * FROM batches' + (' WHERE ' + ' AND '.join(clauses) if clauses else '') + ' ORDER BY id', args).fetchall()
         return [self._batch_dict(x) for x in rows]
 
-    def query(self, dataset, cutoff=None, *, source_id=None, purpose='features', event_before=None, system_asof=None, positions=None, seasons=None, columns=None, limit=None, player_ids=None, identity_filters=None):
+    def query(self, dataset, cutoff=None, *, source_id=None, purpose='features', event_before=None, system_asof=None, positions=None, seasons=None, columns=None, limit=None, player_ids=None, identity_filters=None, order="partition", offset=0, max_batch_id=None, batch_ids=None):
+        if order not in ('partition', 'latest') or isinstance(offset, bool) or not isinstance(offset, int) or offset < 0 or (offset and order != 'latest'):
+            raise ValueError('Invalid warehouse ordering or offset')
         if limit is not None and (isinstance(limit, bool) or not isinstance(limit, int) or limit < 1):
             raise ValueError('limit must be a positive integer or None')
         if identity_filters is not None and not isinstance(identity_filters, dict):
@@ -356,6 +358,17 @@ class Warehouse:
         # not grant permission to silently bypass temporal filtering.
         cutoff_time = timestamp(cutoff) if cutoff is not None else time.time()
         clauses, args = ["dataset=?", "status='published'", 'available_at<=?'], [dataset, cutoff_time]
+        if batch_ids is not None:
+            if not isinstance(batch_ids, list) or len(batch_ids) > 10000 or any(isinstance(i, bool) or not isinstance(i, int) or i < 1 for i in batch_ids):
+                raise ValueError('Invalid pinned batches')
+            if batch_ids:
+                clauses.append('id IN (' + ','.join('?' for _ in batch_ids) + ')'); args.extend(batch_ids)
+            else:
+                clauses.append('0')
+        if max_batch_id is not None:
+            if isinstance(max_batch_id, bool) or not isinstance(max_batch_id, int) or max_batch_id < 0:
+                raise ValueError('Invalid batch ceiling')
+            clauses.append('id<=?'); args.append(max_batch_id)
         if source_id:
             clauses.append('source_id=?'); args.append(source_id)
         if system_asof is not None:
@@ -368,7 +381,7 @@ class Warehouse:
                 if group in chosen:
                     continue
                 chosen.add(group)
-                sql, params = 'SELECT body,event_at,row_hash FROM records WHERE batch_id=?', [b['id']]
+                sql, params = 'SELECT body,event_at,row_hash,record_key FROM records WHERE batch_id=?', [b['id']]
                 if event_before is not None:
                     sql += ' AND event_at IS NOT NULL AND event_at<=?'; params.append(timestamp(event_before))
                 for field, values in (('position', positions), ('season', seasons)):
@@ -386,9 +399,9 @@ class Warehouse:
                             alternatives.append("CAST(json_extract(body, '$." + field + "') AS TEXT) IN (" + ','.join('?' for _ in identifiers) + ')')
                             params.extend(identifiers)
                     sql += ' AND (' + ' OR '.join(alternatives) + ')' if alternatives else ' AND 0'
-                sql += ' ORDER BY record_key'
+                sql += (" ORDER BY CAST(json_extract(body, '$.season') AS REAL) DESC, CAST(json_extract(body, '$.week') AS REAL) DESC,event_at DESC,record_key" if order == 'latest' else ' ORDER BY record_key')
                 if limit is not None:
-                    sql += ' LIMIT ?'; params.append(limit - len(result))
+                    sql += ' LIMIT ?'; params.append(limit + offset if order == 'latest' else limit - len(result))
                 provenance = {'source_id': b['source_id'], 'dataset': dataset, 'batch_id': b['id'], 'raw_id': b['raw_id'],
                     'partition': b['partition_key'], 'observed_at': b['observed_at'], 'available_at': b['available_at'],
                     'published_at': b['published_at'], 'publication_evidence': json.loads(b['publication_evidence'] or '{}'),
@@ -400,10 +413,21 @@ class Warehouse:
                     row = json.loads(r['body'])
                     if columns is not None:
                         row = {key: row.get(key) for key in columns}
-                    row['_provenance'] = {**provenance, 'event_at': r['event_at']}
+                    row['_provenance'] = {**provenance, 'event_at': r['event_at'], 'record_key':r['record_key']}
                     result.append(row)
-                if limit is not None and len(result) >= limit:
+                if order == 'partition' and limit is not None and len(result) >= limit:
                     break
+        if order == 'latest':
+            def latest_key(row):
+                def number(value):
+                    try:
+                        return float(value) if value is not None else float('-inf')
+                    except (TypeError, ValueError):
+                        return float('-inf')
+                p = row['_provenance']
+                return (-number(row.get('season')), -number(row.get('week')), -number(p.get('event_at')), -number(p['available_at']), -number(p['batch_id']), p['record_key'])
+            result.sort(key=latest_key)
+            result = result[offset:offset + limit] if limit is not None else result[offset:]
         leakage_check(result, cutoff_time, raise_on_error=True)
         return result
 

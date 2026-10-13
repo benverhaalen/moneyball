@@ -12,10 +12,10 @@ Run commands from the repository root. Output is JSON; errors are JSON on stderr
 python3 -m moneyball context --fresh
 python3 -m moneyball view settings
 python3 -m moneyball view drafts
-python3 -m moneyball lab init
-python3 -m moneyball lab status
-python3 -m moneyball lab sources
-python3 -m moneyball lab alerts --limit 10
+python3 -m moneyball legacy lab init
+python3 -m moneyball legacy lab status
+python3 -m moneyball legacy lab sources
+python3 -m moneyball legacy lab alerts --limit 10
 ```
 
 `context --fresh` refreshes the league evidence. It does not refresh professional forecasts. `lab sources` reports acquisition and source-specific permission/refresh metadata; `lab status` lists published partitions and quarantine counts. Always inspect source timestamps and failures before using a derived artifact.
@@ -26,22 +26,22 @@ The current draft adapter is deliberately specific: twelve teams, a 28-round sna
 
 ```sh
 # Historical event statistics, rosters, identifiers and schedules.
-python3 -m moneyball lab ingest --seasons 2018 2019 2020 2021 2022 2023 2024 2025 2026
+python3 -m moneyball legacy lab ingest --seasons 2018 2019 2020 2021 2022 2023 2024 2025 2026
 
 # Provider observations: event forecasts, tagged ADP and market values.
-python3 -m moneyball lab providers --season 2026 --weeks 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
+python3 -m moneyball legacy lab providers --season 2026 --weeks 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
 
 # Optional larger observations. Narrow seasons/datasets for a first run.
-python3 -m moneyball lab advanced --datasets weekly_rosters depth_charts injuries --seasons 2025 2026
-python3 -m moneyball lab advanced --datasets pbp --seasons 2025
-python3 -m moneyball lab ingest --datasets snap_counts --seasons 2025
-python3 -m moneyball lab opportunities --seasons 2025
-python3 -m moneyball lab depth --season 2026 --positions QB --limit 20
+python3 -m moneyball legacy lab advanced --datasets weekly_rosters depth_charts injuries --seasons 2025 2026
+python3 -m moneyball legacy lab advanced --datasets pbp --seasons 2025
+python3 -m moneyball legacy lab ingest --datasets snap_counts --seasons 2025
+python3 -m moneyball legacy lab opportunities --seasons 2025
+python3 -m moneyball legacy lab depth --season 2026 --positions QB --limit 20
 
 # A bounded local read; season labels do not imply historical knowability.
-python3 -m moneyball lab query --dataset projections --source sleeper_rotowire --positions QB --seasons 2026 --limit 8
-python3 -m moneyball lab query --dataset consensus_values --seasons 2026 --limit 8
-python3 -m moneyball lab query --dataset weekly --seasons 2025 --cutoff 2026-09-07T12:00:00Z --limit 8
+python3 -m moneyball legacy lab query --dataset projections --source sleeper_rotowire --positions QB --seasons 2026 --limit 8
+python3 -m moneyball legacy lab query --dataset consensus_values --seasons 2026 --limit 8
+python3 -m moneyball legacy lab query --dataset weekly --seasons 2025 --cutoff 2026-09-07T12:00:00Z --limit 8
 ```
 
 Use `--offline` to reuse already acquired bytes without HTTP. Missing cached objects are reported as failures. Re-running ingestion resumes from cached/unchanged partitions. `--fresh` requests eligible network refreshes; it does not override provider rights restrictions or the FantasyCalc minimum cache period.
@@ -94,8 +94,8 @@ The CLI currently accepts `--cutoff` only for `lab query`. Current-decision comm
 ## Build forecasts and measurements
 
 ```sh
-python3 -m moneyball lab build --season 2026
-python3 -m moneyball lab mispricing --season 2026
+python3 -m moneyball legacy lab build --season 2026
+python3 -m moneyball legacy lab mispricing --season 2026
 ```
 
 `build` transforms locally stored evidence without HTTP. It copies the observed league configuration into lineage, fits the historical model using earlier seasons, scores forecast events using the exact league dictionary, and saves a build receipt and input-batch IDs. Artifact names and dimensions are returned in JSON. Typical outputs include current model/projection JSON, reliability curves/CSV, role-change measurements and a correlation matrix. Inspect each artifact's definitions and limitations; existence is not validation.
@@ -129,15 +129,15 @@ The horizon model requires an explicit complete-statistics-snapshot contract and
 
 ```sh
 # Small first experiment; then compare prespecified demand/rival assumptions.
-python3 -m moneyball lab draft --draft-draws 4 --draws 100 --years 1 --seed 17 --noise 8 --rivals adp
-python3 -m moneyball lab draft --draft-draws 4 --draws 100 --years 1 --seed 17 --noise 8 --rivals lineup
-python3 -m moneyball lab draft --draft-draws 4 --draws 100 --years 1 --seed 17 --noise 20 --rivals mixed
+python3 -m moneyball legacy lab draft --draft-draws 4 --draws 100 --years 1 --seed 17 --noise 8 --rivals adp
+python3 -m moneyball legacy lab draft --draft-draws 4 --draws 100 --years 1 --seed 17 --noise 8 --rivals lineup
+python3 -m moneyball legacy lab draft --draft-draws 4 --draws 100 --years 1 --seed 17 --noise 20 --rivals mixed
 
 # Multiyear sensitivity, with previously built support/transition artifacts.
-python3 -m moneyball lab draft --draft-draws 4 --draws 100 --years 3 --horizon transition --distribution entropy --rivals lineup --missing-forecast zero
+python3 -m moneyball legacy lab draft --draft-draws 4 --draws 100 --years 3 --horizon transition --distribution entropy --rivals lineup --missing-forecast zero
 
 # Optional actual available Sleeper player IDs; placeholders are not valid IDs.
-python3 -m moneyball lab draft --candidates PLAYER_ID_A PLAYER_ID_B --draft-draws 4 --draws 100
+python3 -m moneyball legacy lab draft --candidates PLAYER_ID_A PLAYER_ID_B --draft-draws 4 --draws 100
 ```
 
 Online `draft` and `move` refresh the live league snapshot before evaluation; `--offline` explicitly uses the stored snapshot. The professional projection can still be older and its timestamp/age is reported separately. A draft experiment carries forward every manager's actual observed picks, then completes all twelve rosters. Changing our choice changes later available players and rival holdings. Replaying the old opponent transcript unchanged would not be a valid counterfactual.
@@ -166,7 +166,7 @@ Save a local JSON input, using actual team/player IDs:
 ```
 
 ```sh
-python3 -m moneyball lab move --input .moneyball/proposed-move.json --years 1 --draws 500
+python3 -m moneyball legacy lab move --input .moneyball/proposed-move.json --years 1 --draws 500
 ```
 
 A free-agent alternative uses `{"team":"1","add":["PLAYER_C"],"drop":["PLAYER_A"]}`. Predraft empty rosters require `lab draft` or an explicitly supplied hypothetical `--state` containing the full league. Ownership and ordinary-capacity checks reject invalid changes. IR/taxi eligibility, lock constraints and excess holdings must be resolved before interpreting operational legality.
@@ -196,7 +196,7 @@ The highest-value next measurements are prospectively archived forecasts, manage
 ### Live draft evaluation
 
 ```sh
-python3 -m moneyball lab live --watch-live --budget-seconds 40 --candidate-limit 6 --live-inner-draws 8 --years 3 --distribution entropy --horizon transition
+python3 -m moneyball legacy lab live --watch-live --budget-seconds 40 --candidate-limit 6 --live-inner-draws 8 --years 3 --distribution entropy --horizon transition
 ```
 
 Open `http://127.0.0.1:8765`. A separate thread polls documented draft-pick endpoints every five seconds. Availability and opponent roster needs update immediately; forward availability estimates appear before the slower championship comparison. New picks invalidate prior recommendations and cancel the obsolete calculation. The board suppresses actionable choices on a stale feed, outside the manager's turn, or outside the platform's drafting state. The process and Mac must remain running. It never sends a selection or offer.
@@ -212,10 +212,10 @@ Private live artifacts are in `.moneyball/lab/live/`: `latest.json`, immutable o
 `moneyball/market_distribution.py` provides an optional inspected-schema adapter for two-sided sportsbook quotes. It makes de-vig, monotonicity and tail-support assumptions explicit and returns distribution/mean identification bounds, not fabricated confidence intervals. Actual player props still require an authorized feed. The first retrospective game-total coverage measurement is separate from the fantasy simulator and has not been promoted to a forecasting input.
 
 ```sh
-python3 -m moneyball lab refresh --season 2026
-python3 -m moneyball lab schedule --schedule-action status
-python3 -m moneyball lab schedule --schedule-action install --interval 3600
-python3 -m moneyball lab schedule --schedule-action remove
+python3 -m moneyball legacy lab refresh --season 2026
+python3 -m moneyball legacy lab schedule --schedule-action status
+python3 -m moneyball legacy lab schedule --schedule-action install --interval 3600
+python3 -m moneyball legacy lab schedule --schedule-action remove
 python3 -m unittest discover -s tests -v
 ```
 

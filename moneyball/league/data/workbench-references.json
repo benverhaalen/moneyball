@@ -1,0 +1,346 @@
+{
+  "version": 1,
+  "scope": "Dated reference inspections, not reproduced performance results. No third-party code or restricted data bundled. Reference-only means retained for host reasoning, not an installed predictive model.",
+  "references": [
+    {
+      "id": "nflverse",
+      "repository": "nflverse/nflverse-data",
+      "url": "https://github.com/nflverse/nflverse-data",
+      "mechanism": "Observed football inputs",
+      "transfer_limit": "Versioned observations and identity joins; historical season is not historical knowability.",
+      "integration": "existing_pipeline",
+      "rights": "Data-specific terms",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "xfp",
+      "repository": "ffverse/ffopportunity",
+      "url": "https://github.com/ffverse/ffopportunity",
+      "mechanism": "Value of observed opportunities",
+      "transfer_limit": "Separate work from realized conversion; retrospective xFP is not a future projection.",
+      "integration": "existing_pipeline",
+      "rights": "Code/data rights separate",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "scouting",
+      "repository": "tanho63/nfl_combine",
+      "url": "https://github.com/tanho63/nfl_combine",
+      "mechanism": "Prospect priors",
+      "transfer_limit": "Preserve dated skill descriptions; do not turn scouting adjectives into calibrated outcomes.",
+      "integration": "reference_only",
+      "rights": "Verify individual dataset rights",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "volume_share",
+      "repository": "edward-sims/ml-oddbox-forecasting",
+      "url": "https://github.com/edward-sims/ml-oddbox-forecasting",
+      "mechanism": "Team total times allocation share",
+      "transfer_limit": "Use decomposition; do not reuse validation scores or unshifted current-outcome features.",
+      "integration": "calculator:opportunity",
+      "rights": "MIT code; data separate",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "role_states",
+      "repository": "janolefi/LaMa",
+      "url": "https://github.com/janolefi/LaMa",
+      "mechanism": "Persistent latent roles and dwell times",
+      "transfer_limit": "Retain HMM/HSMM design; calculator only propagates supplied homogeneous transitions.",
+      "integration": "calculator:role_transition",
+      "rights": "MIT",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "forecast_participation",
+      "repository": "ghadfield32/ratings-are-not-forecasts",
+      "url": "https://github.com/ghadfield32/ratings-are-not-forecasts",
+      "mechanism": "Ability versus forecast deployment",
+      "transfer_limit": "Use predecision participation estimates; NBA results do not establish NFL prediction quality.",
+      "integration": "reasoning_protocol",
+      "rights": "MIT code; table redistribution unresolved",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "cohort_shrinkage",
+      "repository": "emmett-hannam/nfl-draft-analytics",
+      "url": "https://github.com/emmett-hannam/nfl-draft-analytics",
+      "mechanism": "Cohort priors and sample shrinkage",
+      "transfer_limit": "Do not import fitted success claims, selected survivor sample or configured prior strength as empirically optimal.",
+      "integration": "calculator:shrinkage",
+      "rights": "No license found in inspected tree; no code copied",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "contracts",
+      "repository": "nflverse/rotc",
+      "url": "https://github.com/nflverse/rotc",
+      "mechanism": "Contract state",
+      "transfer_limit": "Possible departure is not guaranteed vacancy or inherited work; inspect effective dates and guarantees.",
+      "integration": "reference_only",
+      "rights": "MIT code; source terms separate",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "league_clients",
+      "repository": "ffverse/ffscrapr",
+      "url": "https://github.com/ffverse/ffscrapr",
+      "mechanism": "League adapters",
+      "transfer_limit": "Compare documented provider semantics with exact response; not a new connected adapter.",
+      "integration": "reference_only",
+      "rights": "MIT",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "history",
+      "repository": "ffverse/ffhistorian",
+      "url": "https://github.com/ffverse/ffhistorian",
+      "mechanism": "Historical snapshots",
+      "transfer_limit": "Preserve original acquisition dates; cannot reconstruct unknown prior publication.",
+      "integration": "reference_only",
+      "rights": "MIT",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "simulation",
+      "repository": "ffverse/ffsimulator",
+      "url": "https://github.com/ffverse/ffsimulator",
+      "mechanism": "Roster simulation",
+      "transfer_limit": "Transfer mechanical structure; independent availability and best-ball defaults do not match every league.",
+      "integration": "reference_only",
+      "rights": "MIT",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "seeding",
+      "repository": "nflverse/nflseedR",
+      "url": "https://github.com/nflverse/nflseedR",
+      "mechanism": "Rules separate from forecasts",
+      "transfer_limit": "Keep schedule and bracket mechanics separate from outcome model.",
+      "integration": "reference_only",
+      "rights": "MIT",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "route_geometry",
+      "repository": "danichusfu/RouteIdentification",
+      "url": "https://github.com/danichusfu/RouteIdentification",
+      "mechanism": "Route geometry",
+      "transfer_limit": "Use alignment/assignment distinctions; tracking access and later-season transport unresolved.",
+      "integration": "reference_only",
+      "rights": "GPL-3.0; no code bundled",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "presnap",
+      "repository": "MLecardonnel/PreSnapPrediction",
+      "url": "https://github.com/MLecardonnel/PreSnapPrediction",
+      "mechanism": "Situation-conditioned passing",
+      "transfer_limit": "Completed-pass labels do not isolate separation or receiving ability.",
+      "integration": "reference_only",
+      "rights": "No license found; no code copied",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "coverage_states",
+      "repository": "janolefi/HMMotion",
+      "url": "https://github.com/janolefi/HMMotion",
+      "mechanism": "Hidden defensive coverage",
+      "transfer_limit": "Coverage states inspire scheme representation, not a validated dynasty role forecast.",
+      "integration": "reference_only",
+      "rights": "No license found; no code copied",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "opportunity_denominator",
+      "repository": "MLecardonnel/ExpectedTackling",
+      "url": "https://github.com/MLecardonnel/ExpectedTackling",
+      "mechanism": "Opportunity denominator",
+      "transfer_limit": "Retrospective defensive tracking mechanism; random frames do not establish future independent-game performance.",
+      "integration": "reasoning_protocol",
+      "rights": "No license found; tracking terms separate",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "counterfactual",
+      "repository": "janolefi/PEP",
+      "url": "https://github.com/janolefi/PEP",
+      "mechanism": "With/without player counterfactual",
+      "transfer_limit": "Fork of Rob2208/nfl_bdb_24; model not supplied; feature intervention is not proof of causal identification.",
+      "integration": "reasoning_protocol",
+      "rights": "No license found; no code copied",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "yard_distribution",
+      "repository": "edward-sims/nfl-big-data-bowl",
+      "url": "https://github.com/edward-sims/nfl-big-data-bowl",
+      "mechanism": "Conditional yard distribution",
+      "transfer_limit": "Distribution scoring and game grouping; no current NFL feed or multiyear model supplied.",
+      "integration": "reference_only",
+      "rights": "MIT code; tracking terms separate",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "separation",
+      "repository": "ghadfield32/nfl_big_data_bowl_2025",
+      "url": "https://github.com/ghadfield32/nfl_big_data_bowl_2025",
+      "mechanism": "Context for separation",
+      "transfer_limit": "Retain question; audited ratio and post-snap target choices prevent direct forecasting transfer.",
+      "integration": "reference_only",
+      "rights": "MIT code; data terms separate",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "tracking_prototype",
+      "repository": "emmett-hannam/big-data-bowl",
+      "url": "https://github.com/emmett-hannam/big-data-bowl",
+      "mechanism": "Tracking representation",
+      "transfer_limit": "Synthetic and post-throw inputs cannot support a real predecision prediction claim.",
+      "integration": "reference_only",
+      "rights": "No license found; no code copied",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "coaching",
+      "repository": "mklim6/nfl-coaching-decision-lab",
+      "url": "https://github.com/mklim6/nfl-coaching-decision-lab",
+      "mechanism": "Situation and play-call tendencies",
+      "transfer_limit": "Separate staff, personnel and game state; inspected split/feature timing needs repair before forecast reuse.",
+      "integration": "reference_only",
+      "rights": "MIT",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "qb_archetypes",
+      "repository": "mklim6/nfl-qb-archetype-clustering",
+      "url": "https://github.com/mklim6/nfl-qb-archetype-clustering",
+      "mechanism": "Role-specific skill profiles",
+      "transfer_limit": "Clusters describe a selected sample; do not treat resemblance as future success.",
+      "integration": "reference_only",
+      "rights": "MIT",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "draft_cohorts",
+      "repository": "mklim6/nfl-draft-outcomes-sql",
+      "url": "https://github.com/mklim6/nfl-draft-outcomes-sql",
+      "mechanism": "Cohort comparisons",
+      "transfer_limit": "Align follow-up exposure and include failures before interpreting development.",
+      "integration": "reference_only",
+      "rights": "MIT",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "context_value",
+      "repository": "ghadfield32/context-is-not-information",
+      "url": "https://github.com/ghadfield32/context-is-not-information",
+      "mechanism": "Incremental context value",
+      "transfer_limit": "Keep richer context as hypothesis; original replication inputs unavailable.",
+      "integration": "reasoning_protocol",
+      "rights": "Reuse rights not verified",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "person_holdout",
+      "repository": "ghadfield32/when-state-becomes-information",
+      "url": "https://github.com/ghadfield32/when-state-becomes-information",
+      "mechanism": "Hold out individuals",
+      "transfer_limit": "Nested person-level selection informs later evaluation; three athletes cannot establish football transport.",
+      "integration": "reference_only",
+      "rights": "Reuse rights not verified",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "related_forecast",
+      "repository": "ghadfield32/ssac27-release-conditioned-forecasting",
+      "url": "https://github.com/ghadfield32/ssac27-release-conditioned-forecasting",
+      "mechanism": "Related conditional forecasting study",
+      "transfer_limit": "Not independent confirmation of when-state-becomes-information.",
+      "integration": "reference_only",
+      "rights": "Reuse rights not verified",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "data_grain",
+      "repository": "danichusfu/big-data-bowl-ii-tutorial",
+      "url": "https://github.com/danichusfu/big-data-bowl-ii-tutorial",
+      "mechanism": "Player rows versus plays",
+      "transfer_limit": "Use grain checks; tutorial provides no future player model.",
+      "integration": "reasoning_protocol",
+      "rights": "Reuse rights not verified",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "simple_baseline",
+      "repository": "ghadfield32/nfl_quant_analysis",
+      "url": "https://github.com/ghadfield32/nfl_quant_analysis",
+      "mechanism": "Percentiles and forecast error",
+      "transfer_limit": "Simple comparator, not ability/opportunity separation.",
+      "integration": "reference_only",
+      "rights": "README MIT claim lacks inspected LICENSE",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "injury_ingestion",
+      "repository": "ghadfield32/nba_player_valuation_system",
+      "url": "https://github.com/ghadfield32/nba_player_valuation_system",
+      "mechanism": "Availability reports",
+      "transfer_limit": "Ingestion DAG is not a calibrated injury-risk model.",
+      "integration": "reference_only",
+      "rights": "Reuse rights not verified",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "latent_supplement",
+      "repository": "janolefi/LatentMarkov",
+      "url": "https://github.com/janolefi/LatentMarkov",
+      "mechanism": "Latent-state examples",
+      "transfer_limit": "Supplemental examples; not independent football evidence.",
+      "integration": "reference_only",
+      "rights": "Reuse rights not verified",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "nba_roster",
+      "repository": "mklim6/NBA_Roster_Optimization_Engine",
+      "url": "https://github.com/mklim6/NBA_Roster_Optimization_Engine",
+      "mechanism": "Constrained roster construction",
+      "transfer_limit": "Conceptual reference only: proprietary; numerical age rules unvalidated here.",
+      "integration": "reference_only",
+      "rights": "Proprietary; do not copy",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "draft_history",
+      "repository": "tanho63/data-sfb13",
+      "url": "https://github.com/tanho63/data-sfb13",
+      "mechanism": "Real draft sequences",
+      "transfer_limit": "Discovery lead; league population differs, not an opponent model.",
+      "integration": "discovery_only",
+      "rights": "Not verified for reuse",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "methods_index",
+      "repository": "nflverse/open-source-football",
+      "url": "https://github.com/nflverse/open-source-football",
+      "mechanism": "Method discovery",
+      "transfer_limit": "Find primary implementation before importing a claim.",
+      "integration": "discovery_only",
+      "rights": "Per-contribution rights",
+      "reviewed_on": "2026-10-13"
+    },
+    {
+      "id": "tracking_seed",
+      "repository": "nfl-football-ops/Big-Data-Bowl",
+      "url": "https://github.com/nfl-football-ops/Big-Data-Bowl",
+      "mechanism": "Official tracking sample discovery",
+      "transfer_limit": "Competition samples are not general current-season tracking access.",
+      "integration": "discovery_only",
+      "rights": "Competition/data terms apply",
+      "reviewed_on": "2026-10-13"
+    }
+  ]
+}

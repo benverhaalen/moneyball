@@ -20,13 +20,15 @@ class TransportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             s=Store(root); c=Client(s)
             with patch.object(c.opener,"open",return_value=Response(b'{"rows":[1]}')) as request:
-                payload,first=c.get("https://example.test/data",headers={"Cookie":"secret-request-cookie"})
-                again,last=c.get("https://example.test/data",headers={"Cookie":"changed-cookie"})
+                # Explicit logical account scope survives cookie rotation without
+                # accidentally sharing a public or league-only cache.
+                payload,first=c.get("https://example.test/data",headers={"Cookie":"secret-request-cookie"},namespace="account:test")
+                again,last=c.get("https://example.test/data",headers={"Cookie":"changed-cookie"},namespace="account:test")
                 self.assertEqual(request.call_count,1)
             self.assertEqual(payload,again)
             self.assertEqual(first["checked_at"],last["checked_at"])
             self.assertTrue(last["cache_hit"])
-            record=s.get("http","public:https://example.test/data")
+            record=s.get("http","account:test:https://example.test/data")
             self.assertNotIn("cookie",json.dumps(record).lower())
             self.assertEqual((s.blobs/first["raw_sha256"]).read_bytes(),b'{"rows":[1]}')
 

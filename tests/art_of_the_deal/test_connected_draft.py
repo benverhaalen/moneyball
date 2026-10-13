@@ -53,6 +53,12 @@ class ConnectedDraftTests(unittest.TestCase):
         with patch("art_of_the_deal.draft.Client", return_value=reads or self.reads()):
             return draft.context(self.service, "demo", **kwargs)
 
+    def test_fresh_board_requests_local_after_call_barrier(self):
+        with patch("art_of_the_deal.draft.Client", return_value=self.reads()) as client:
+            draft.context(self.service, "demo")
+        self.assertTrue(client.call_args.kwargs["start_after_request"])
+        self.assertTrue(client.call_args.kwargs["force"])
+
     def test_connected_sleeper_repeated_context_rules_research_shortlist_and_guards(self):
         reads = self.reads(trades=[{"season": "2026", "round": 2, "roster_id": 2, "owner_id": 1}])
         first = self.packet(reads, player_ids=["111", "222", "999"])

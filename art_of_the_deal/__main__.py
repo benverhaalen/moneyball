@@ -1,2 +1,2 @@
-from .cli import main
+from moneyball.league.cli import main
 main()

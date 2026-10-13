@@ -75,6 +75,31 @@ def forecasts(values, *, available_at=100.0, source="test"):
 
 
 class WaiverEvaluationTests(unittest.TestCase):
+    def test_bye_week_gain_does_not_resolve_drop_retention_value(self):
+        from art_of_the_deal.operations import compact_pickup
+        data = league(bench=2)
+        data["rules"]["starters"] = [
+            {"label": "QB", "eligible_positions": ["QB"]},
+            {"label": "WR", "eligible_positions": ["WR"]},
+        ]
+        for pid in ("rb1", "rb2"):
+            data["players"][pid]["positions"] = ["QB"]
+        data["teams"]["a"]["starters"] = ["rb2", "wr1"]
+        # The retained season starter is on bye; a receiver gain says nothing
+        # about whether surrendering that quarterback's future starts is wise.
+        rows = forecasts({"rb1": 0, "rb2": 12, "wr1": 11, "wr2": 8, "fa": 14})
+        result = evaluate_pickup(data, "a", candidate(), "rb1", rows,
+                                 evaluation_week=2, decision_at=200)
+        self.assertEqual(result["result"]["delta_points"], 3)
+        for view in (result, compact_pickup(result, data["players"])):
+            review = view["decision_support"]["retention_review"]
+            self.assertEqual(review["drop_player_id"], "rb1")
+            self.assertEqual(review["status"], "required_before_drop_recommendation")
+        claims = evaluate_claim_scenarios(data, "a", [{"candidate": candidate(), "drop_player_id": "rb1"}],
+                                         rows, evaluation_week=2, decision_at=200)
+        branch = claims["scenarios"][0]["conditional_on_this_target_being_acquired"]
+        self.assertEqual(branch["decision_support"], result["decision_support"])
+
     def test_full_lineup_and_flex_cascade_use_same_forecast_cohort(self):
         data = league()
         rows = forecasts({"rb1": 12, "rb2": 10, "wr1": 11, "wr2": 8, "fa": 14})
@@ -110,6 +135,7 @@ class WaiverEvaluationTests(unittest.TestCase):
         self.assertTrue(result["roster_branch_feasible"])
         self.assertEqual(result["after"]["capacity"]["required_drop"], 0)
         self.assertEqual(result["result"]["delta_points"], 4)
+        self.assertEqual(result["decision_support"]["retention_review"]["status"], "no_drop_proposed")
 
     def test_missing_candidate_forecast_is_unknown_not_zero(self):
         data = league()
